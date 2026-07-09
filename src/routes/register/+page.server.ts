@@ -2,6 +2,7 @@ import { redirect, fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
+  // safeGetSession() validates user with getUser() to ensure authenticity
   const { session } = await locals.safeGetSession();
   if (session) {
     throw redirect(303, "/profile");
@@ -23,11 +24,29 @@ export const actions: Actions = {
       });
     }
 
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return fail(400, {
+        email,
+        full_name: fullName,
+        error: "Email inválido",
+      });
+    }
+
     if (password.length < 6) {
       return fail(400, {
         email,
         full_name: fullName,
         error: "A senha deve ter pelo menos 6 caracteres",
+      });
+    }
+
+    if (fullName.trim().length < 3) {
+      return fail(400, {
+        email,
+        full_name: fullName,
+        error: "Nome deve ter pelo menos 3 caracteres",
       });
     }
 

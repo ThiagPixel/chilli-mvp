@@ -8,6 +8,7 @@ interface ProfileUpdate {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  // safeGetSession() validates user with getUser() to ensure authenticity
   const { session, user } = await locals.safeGetSession();
   if (!session || !user) {
     throw redirect(303, "/login");
@@ -24,6 +25,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   update: async ({ request, locals }) => {
+    // safeGetSession() validates user with getUser() to ensure authenticity
     const { session, user } = await locals.safeGetSession();
     if (!session || !user) {
       throw redirect(303, "/login");
@@ -54,6 +56,7 @@ export const actions: Actions = {
   },
 
   updatePassword: async ({ request, locals }) => {
+    // safeGetSession() validates user with getUser() to ensure authenticity
     const { session, user } = await locals.safeGetSession();
     if (!session || !user) {
       throw redirect(303, "/login");

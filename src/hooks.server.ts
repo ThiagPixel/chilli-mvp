@@ -33,6 +33,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   );
 
   event.locals.safeGetSession = async () => {
+    // First check if a session exists in cookies
     const {
       data: { session },
     } = await event.locals.supabase.auth.getSession();
@@ -41,15 +42,20 @@ export const handle: Handle = async ({ event, resolve }) => {
       return { session: null, user: null };
     }
 
+    // Always validate the session by calling getUser() to ensure authenticity
+    // getSession() returns data from cookies which could be tampered with
+    // getUser() validates the session with Supabase auth server
     const {
       data: { user },
       error,
     } = await event.locals.supabase.auth.getUser();
 
     if (error) {
+      // Session exists but user validation failed - session is invalid
       return { session: null, user: null };
     }
 
+    // Session is valid and user is authenticated
     return { session, user };
   };
 

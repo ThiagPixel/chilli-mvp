@@ -125,6 +125,7 @@
 							id="current_password"
 							placeholder="••••••••"
 							class="input input-bordered w-full"
+							required
 						/>
 					</div>
 
@@ -139,6 +140,7 @@
 							placeholder="Mínimo 6 caracteres"
 							class="input input-bordered w-full"
 							minlength="6"
+							required
 						/>
 					</div>
 
@@ -152,6 +154,7 @@
 							id="confirm_password"
 							placeholder="••••••••"
 							class="input input-bordered w-full"
+							required
 						/>
 					</div>
 
