@@ -66,7 +66,7 @@
 							type="password"
 							name="password"
 							id="password"
-							placeholder="Mínimo 6 caracteres"
+							placeholder="••••••••"
 							class="input input-bordered w-full"
 							minlength="6"
 							required
