@@ -1,12 +1,6 @@
 import { redirect, fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
-interface ProfileUpdate {
-  full_name: string;
-  bio: string | null;
-  updated_at: string;
-}
-
 export const load: PageServerLoad = async ({ locals }) => {
   // safeGetSession() validates user with getUser() to ensure authenticity
   const { session, user } = await locals.safeGetSession();
@@ -44,8 +38,7 @@ export const actions: Actions = {
       .update({
         full_name: fullName,
         bio: bio || null,
-        updated_at: new Date().toISOString(),
-      } as ProfileUpdate)
+      })
       .eq("id", user.id);
 
     if (error) {

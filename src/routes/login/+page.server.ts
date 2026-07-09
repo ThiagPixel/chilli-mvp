@@ -2,7 +2,7 @@ import { redirect, fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
-  // safeGetSession() validates user with getUser() to ensure authenticity
+  // Redirect already logged-in users to profile
   const { session } = await locals.safeGetSession();
   if (session) {
     throw redirect(303, "/profile");
@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, locals }) => {
+  default: async ({ request, locals, cookies }) => {
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -31,7 +31,23 @@ export const actions: Actions = {
     });
 
     if (error) {
-      return fail(400, { email, error: error.message });
+      // Handle specific login errors
+      if (error.message.includes("Invalid login credentials")) {
+        return fail(400, {
+          email,
+          error: "Email ou senha inválidos",
+        });
+      }
+      if (error.message.includes("Email not confirmed")) {
+        return fail(400, {
+          email,
+          error: "Email não confirmado. Verifique sua caixa de entrada.",
+        });
+      }
+      return fail(400, {
+        email,
+        error: error.message || "Erro ao fazer login",
+      });
     }
 
     throw redirect(303, "/profile");

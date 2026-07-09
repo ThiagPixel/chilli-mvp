@@ -2,7 +2,7 @@ import { redirect, fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
-  // safeGetSession() validates user with getUser() to ensure authenticity
+  // Redirect already logged-in users to profile
   const { session } = await locals.safeGetSession();
   if (session) {
     throw redirect(303, "/profile");
@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, locals }) => {
+  default: async ({ request, locals, cookies }) => {
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -34,11 +34,23 @@ export const actions: Actions = {
       });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return fail(400, {
         email,
         full_name: fullName,
-        error: "A senha deve ter pelo menos 6 caracteres",
+        error: "A senha deve ter pelo menos 8 caracteres",
+      });
+    }
+
+    // Validate password strength: at least one uppercase, one lowercase, one number
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return fail(400, {
+        email,
+        full_name: fullName,
+        error:
+          "Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número",
       });
     }
 
@@ -61,19 +73,41 @@ export const actions: Actions = {
     });
 
     if (error) {
-      return fail(400, { email, full_name: fullName, error: error.message });
+      // Handle specific signup errors
+      if (error.message.includes("already registered")) {
+        return fail(400, {
+          email,
+          full_name: fullName,
+          error: "Email já cadastrado. Faça login ou use outro email.",
+        });
+      }
+      return fail(400, {
+        email,
+        full_name: fullName,
+        error: error.message || "Erro ao criar conta",
+      });
     }
 
     if (data.user) {
-      // Upsert para evitar conflito com trigger SQL (se existir)
-      await locals.supabase.from("profiles").upsert(
-        {
+      // Insert profile after signup
+      // The app controls profile creation (no database trigger)
+      const { error: profileError } = await locals.supabase
+        .from("profiles")
+        .insert({
           id: data.user.id,
           email: email,
           full_name: fullName,
-        },
-        { onConflict: "id" },
-      );
+        });
+
+      if (profileError) {
+        // Log error but don't expose to user (profile creation failed)
+        console.error("Profile creation error:", profileError);
+        return fail(500, {
+          email,
+          full_name: fullName,
+          error: "Erro ao criar perfil. Por favor, tente novamente.",
+        });
+      }
     }
 
     throw redirect(303, "/profile");

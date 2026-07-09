@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { enhance } from '$app/forms';
-	import { invalidate } from '$app/navigation';
+	import { invalidate, goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { createBrowserClient } from '@supabase/ssr';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
@@ -10,7 +10,27 @@
 
 	const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
+	async function handleLogout() {
+		try {
+			const response = await fetch('/auth/logout', { method: 'POST' });
+			if (response.ok || response.status === 303) {
+				// Clear client-side auth state
+				await invalidate('supabase:auth');
+				// Redirect to login
+				await goto('/login');
+			} else {
+				console.error('Logout failed:', response.statusText);
+			}
+		} catch (error) {
+			console.error('Logout error:', error);
+		}
+	}
+
 	onMount(() => {
+		// Listen for auth state changes on the client (e.g., user signs out in another tab)
+		// This invalidates the server-side session so safeGetSession() will re-validate.
+		// Note: The actual user object is never trusted from onAuthStateChange();
+		// it's always re-validated server-side via getUser() in safeGetSession()
 		const { data: { subscription } } = supabase.auth.onAuthStateChange((event, _session) => {
 			if (_session?.expires_at !== data.session?.expires_at) {
 				invalidate('supabase:auth');
@@ -37,9 +57,7 @@
 						<ul class="menu dropdown-content mt-3 z-[1] p-2 shadow-lg bg-base-100 rounded-box w-52">
 							<li><a href="/profile" class="btn btn-ghost justify-start">Perfil</a></li>
 							<li>
-								<form method="POST" action="/auth/logout" use:enhance>
-									<button type="submit" class="w-full text-left">Sair</button>
-								</form>
+								<button type="button" onclick={handleLogout} class="w-full text-left">Sair</button>
 							</li>
 						</ul>
 					</div>
