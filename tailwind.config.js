@@ -9,17 +9,17 @@ export default {
 		themes: [
 			{
 				retro: {
-					primary: '#c2410c',
-					secondary: '#ea580c',
-					accent: '#f97316',
-					neutral: '#292524',
-					'base-100': '#fffbf7',
-					'base-200': '#f5f0eb',
-					'base-300': '#e7e0d8',
-					info: '#0ea5e9',
-					success: '#22c55e',
-					warning: '#eab308',
-					error: '#ef4444'
+					primary: '#e50006',
+					secondary: 'oklch(54% 0.245 262.881)',
+					accent: 'oklch(60% 0.126 221.723)',
+					neutral: 'oklch(37% 0 0)',
+					'base-100': 'oklch(14% 0 0)',
+					'base-200': 'oklch(20% 0 0)',
+					'base-300': 'oklch(26% 0 0)',
+					info: 'oklch(62% 0.214 259.815)',
+					success: 'oklch(69% 0.17 162.48)',
+					warning: 'oklch(76% 0.188 70.08)',
+					error: 'oklch(63% 0.237 25.331)'
 				}
 			}
 		]
