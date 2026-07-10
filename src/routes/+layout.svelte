@@ -50,7 +50,7 @@
 				{#if data.user}
 					<div class="dropdown dropdown-end">
 						<div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-							<div class="w-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
+							<div class="w-10 rounded-full bg-primary text-primary-content flex content-center">
 								{data.user.email?.charAt(0).toUpperCase() || 'U'}
 							</div>
 						</div>
