@@ -71,40 +71,36 @@ export const handle: Handle = async ({ event, resolve }) => {
    * @returns {session, user} - Valid session/user or {null, null}
    */
   event.locals.safeGetSession = async () => {
-    try {
-      // Step 1: Check if a session token exists in cookies
-      const {
-        data: { session },
-      } = await event.locals.supabase.auth.getSession();
+  try {
+    const {
+      data: { user },
+      error,
+    } = await event.locals.supabase.auth.getUser();
 
-      if (!session) {
-        return { session: null, user: null };
-      }
-
-      // Step 2: Validate the JWT with Supabase auth server
-      // This ensures the token is authentic and not expired
-      // getUser() contacts Supabase and verifies JWT signature
-      const {
-        data: { user },
-        error,
-      } = await event.locals.supabase.auth.getUser();
-
+    if (error || !user) {
       if (error) {
-        // JWT is invalid, expired, or tampered with
-        // Return null to force re-authentication
-        console.error("[Auth] JWT validation failed:", error.message);
-        return { session: null, user: null };
+        console.error("[Auth] getUser failed:", error.message);
       }
 
-      // Step 3: Return validated session and user
-      // user.id contains the UUID (JWT.sub) used for RLS filtering
-      return { session, user };
-    } catch (err) {
-      // Unexpected error during session validation
-      console.error("[Auth] Unexpected error:", err);
-      return { session: null, user: null };
+      return {
+        session: null,
+        user: null,
+      };
     }
-  };
+
+    return {
+      session: null,
+      user,
+    };
+  } catch (err) {
+    console.error("[Auth] Unexpected error:", err);
+
+    return {
+      session: null,
+      user: null,
+    };
+  }
+};
 
   // Continue to route handler
   return resolve(event, {
