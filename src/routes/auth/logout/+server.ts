@@ -10,8 +10,8 @@ import type { RequestHandler } from "./$types";
  */
 export const POST: RequestHandler = async ({ locals }) => {
   // Verify user is authenticated before allowing logout
-  const { session } = await locals.safeGetSession();
-  if (!session) {
+  const { user } = await locals.safeGetSession();
+  if (!user) {
     throw redirect(303, "/login");
   }
 

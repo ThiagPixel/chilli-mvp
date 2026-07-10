@@ -27,12 +27,13 @@ interface Cookie {
  * JWT FLOW:
  * - User logs in or signs up → Supabase generates JWT
  * - JWT stored in HTTP-only cookie (sb-*-auth-token)
- * - On each request: getSession() reads cookie + getUser() validates with server
- * - Invalid JWT → session cleared, user redirected to login
+ * - On each request: getUser() validates the JWT directly with Supabase server
+ * - Invalid JWT → user set to null, request redirected to login
  * - Valid JWT → user.id extracted (JWT.sub claim) for RLS filtering
  *
- * CRITICAL: Never trust getSession() alone!
- * Always call getUser() to validate the JWT with Supabase server.
+ * CRITICAL: Never trust getSession() or onAuthStateChange() user data alone!
+ * That data comes straight from the cookie/storage and may be tampered with.
+ * Always call getUser() to authenticate the JWT with the Supabase Auth server.
  * ============================================================================
  */
 
@@ -61,46 +62,52 @@ export const handle: Handle = async ({ event, resolve }) => {
   /**
    * Secure session validation function
    *
-   * IMPORTANT: This function performs TWO checks:
-   * 1. getSession() - reads JWT from HTTP-only cookie
-   * 2. getUser() - validates JWT with Supabase server
+   * ❌ INSEGURO (nunca faça isso):
+   *   const { data: { session } } = await supabase.auth.getSession();
+   *   const user = session?.user; // Vem direto do cookie, pode ser manipulado!
    *
-   * Using only getSession() is INSECURE because cookies can be tampered with.
-   * getUser() cryptographically validates the JWT signature with the server.
+   * ✅ SEGURO (o que fazemos aqui):
+   *   Chamamos getUser(), que envia uma requisição ao servidor do Supabase
+   *   Auth para validar a assinatura do JWT. Só confiamos no user.id depois
+   *   dessa validação.
    *
-   * @returns {session, user} - Valid session/user or {null, null}
+   * @returns {session, user} - user autenticado ou {null, null}
    */
   event.locals.safeGetSession = async () => {
-  try {
-    const {
-      data: { user },
-      error,
-    } = await event.locals.supabase.auth.getUser();
+    try {
+      // Envia uma requisição ao Supabase Auth para validar o JWT
+      const {
+        data: { user },
+        error,
+      } = await event.locals.supabase.auth.getUser();
 
-    if (error || !user) {
-      if (error) {
-        console.error("[Auth] getUser failed:", error.message);
+      // 🛑 Bloqueia o acesso imediatamente se falhar na autenticação
+      if (error || !user) {
+        // "Auth session missing!" é esperado para visitantes não autenticados
+        // (ex: acessar / ou /login sem estar logado). Não é um erro real,
+        // por isso não poluímos o log nesse caso.
+        if (error && error.name !== "AuthSessionMissingError") {
+          console.error("[Auth] getUser failed:", error.message);
+        }
+        return {
+          session: null,
+          user: null,
+        };
       }
 
+      // ✅ SEGURO: o 'user.id' foi verificado e autenticado com sucesso
+      return {
+        session: null,
+        user,
+      };
+    } catch (err) {
+      console.error("[Auth] Unexpected error:", err);
       return {
         session: null,
         user: null,
       };
     }
-
-    return {
-      session: null,
-      user,
-    };
-  } catch (err) {
-    console.error("[Auth] Unexpected error:", err);
-
-    return {
-      session: null,
-      user: null,
-    };
-  }
-};
+  };
 
   // Continue to route handler
   return resolve(event, {

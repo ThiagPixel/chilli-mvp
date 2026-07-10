@@ -3,8 +3,8 @@ import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
   // Redirect already logged-in users to profile
-  const { session } = await locals.safeGetSession();
-  if (session) {
+  const { user } = await locals.safeGetSession();
+  if (user) {
     throw redirect(303, "/profile");
   }
 };
