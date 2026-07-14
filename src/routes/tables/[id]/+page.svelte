@@ -1,12 +1,48 @@
 <script lang="ts">
-  import type { PageData, ActionData } from "./$types";
+  import { enhance } from "$app/forms";
+  import { ChatPanel } from "$lib/components/chat";
+  import { DicePanel } from "$lib/components/dice";
+  import { createBrowserClient } from "@supabase/ssr";
+  import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "$env/static/public";
 
-  export let data: PageData;
-  export let form: ActionData;
+  interface TableData {
+    id: string;
+    name: string;
+    description: string | null;
+    master_id: string;
+    invite_code: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  }
 
-  let copiedCode = false;
-  let tableName = data.table.name;
-  let tableDescription = data.table.description || "";
+  interface MemberData {
+    id: string;
+    user_id: string;
+    role: "master" | "player";
+    display_name: string | null;
+    joined_at: string;
+  }
+
+  interface PageData {
+    table: TableData;
+    membership: MemberData;
+    members: MemberData[];
+    currentUserId: string;
+  }
+
+  interface Props {
+    data: PageData;
+    form?: { message?: string };
+  }
+
+  let { data, form }: Props = $props();
+
+  const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+
+  let copiedCode = $state(false);
+  let tableName = $derived(data.table.name);
+  let tableDescription = $derived(data.table.description || "");
 
   const descriptionLimit = 500;
 
@@ -241,7 +277,7 @@
             class="btn btn-square btn-sm shrink-0 border-white/10 bg-white/[0.06] text-zinc-300 hover:border-[#e50006]/40 hover:bg-[#e50006] hover:text-white"
             aria-label="Copiar código da mesa"
             title="Copiar código"
-            on:click={copyInviteCode}
+            onclick={copyInviteCode}
           >
             {#if copiedCode}
               <svg
@@ -439,6 +475,48 @@
         </div>
       </article>
 
+      <!-- Chat e Dados -->
+      <article
+        class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]"
+      >
+        <div class="border-b border-white/[0.07] px-5 py-3 sm:px-6">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-[#e50006]"></span>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#ff454b]">
+              Dados & Chat
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col divide-y divide-white/[0.07]">
+          <div class="p-4 sm:p-6">
+            <h3 class="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-300">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="2" />
+                <circle cx="8" cy="8" r="1" fill="currentColor" />
+                <circle cx="16" cy="8" r="1" fill="currentColor" />
+                <circle cx="8" cy="16" r="1" fill="currentColor" />
+                <circle cx="16" cy="16" r="1" fill="currentColor" />
+                <circle cx="12" cy="12" r="1" fill="currentColor" />
+              </svg>
+              Rolagem de Dados
+            </h3>
+            <DicePanel
+              tableId={data.table.id}
+              currentUserId={data.currentUserId}
+              characterName={data.membership.display_name || ""}
+              {supabase}
+            />
+          </div>
+
+          <ChatPanel
+            tableId={data.table.id}
+            currentUserId={data.currentUserId}
+            {supabase}
+          />
+        </div>
+      </article>
+
       {#if data.membership.role === "master"}
         <!-- Administração -->
         <aside class="space-y-6">
@@ -602,7 +680,7 @@
                 method="POST"
                 action="?/deleteTable"
                 class="mt-5"
-                on:submit={confirmDelete}
+                onsubmit={confirmDelete}
               >
                 <button
                   type="submit"

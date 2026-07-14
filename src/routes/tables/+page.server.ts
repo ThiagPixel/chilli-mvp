@@ -1,6 +1,22 @@
 import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
+interface MembershipWithTable {
+  id: string;
+  role: string;
+  display_name: string | null;
+  joined_at: string;
+  rpg_tables: {
+    id: string;
+    name: string;
+    description: string | null;
+    master_id: string;
+    invite_code: string;
+    is_active: boolean;
+    created_at: string;
+  } | null;
+}
+
 export const load: PageServerLoad = async ({ locals }) => {
   const { user } = await locals.safeGetSession();
 
@@ -37,7 +53,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     };
   }
 
-  const tables = (data ?? []).map((membership) => {
+  const tables = (data as MembershipWithTable[] | null ?? []).map((membership) => {
     const table = Array.isArray(membership.rpg_tables)
       ? membership.rpg_tables[0]
       : membership.rpg_tables;

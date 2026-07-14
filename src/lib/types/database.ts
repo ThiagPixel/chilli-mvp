@@ -38,6 +38,119 @@ export interface Database {
 					updated_at?: string;
 				};
 			};
+			rpg_tables: {
+				Row: {
+					id: string;
+					name: string;
+					description: string | null;
+					master_id: string;
+					invite_code: string;
+					is_active: boolean;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					name: string;
+					description?: string | null;
+					master_id: string;
+					invite_code?: string;
+					is_active?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					name?: string;
+					description?: string | null;
+					master_id?: string;
+					invite_code?: string;
+					is_active?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			rpg_table_members: {
+				Row: {
+					id: string;
+					table_id: string;
+					user_id: string;
+					role: "master" | "player";
+					display_name: string | null;
+					joined_at: string;
+				};
+				Insert: {
+					id?: string;
+					table_id: string;
+					user_id: string;
+					role: "master" | "player";
+					display_name?: string | null;
+					joined_at?: string;
+				};
+				Update: {
+					id?: string;
+					table_id?: string;
+					user_id?: string;
+					role?: "master" | "player";
+					display_name?: string | null;
+					joined_at?: string;
+				};
+			};
+			table_messages: {
+				Row: {
+					id: string;
+					table_id: string;
+					user_id: string;
+					content: string;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					table_id: string;
+					user_id: string;
+					content: string;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					table_id?: string;
+					user_id?: string;
+					content?: string;
+					created_at?: string;
+				};
+			};
+			table_rolls: {
+				Row: {
+					id: string;
+					table_id: string;
+					user_id: string;
+					character_name: string | null;
+					expression: string;
+					result: number;
+					rolls: Json;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					table_id: string;
+					user_id: string;
+					character_name?: string | null;
+					expression: string;
+					result: number;
+					rolls: Json;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					table_id?: string;
+					user_id?: string;
+					character_name?: string | null;
+					expression?: string;
+					result?: number;
+					rolls?: Json;
+					created_at?: string;
+				};
+			};
 		};
 		Views: {};
 		Functions: {};

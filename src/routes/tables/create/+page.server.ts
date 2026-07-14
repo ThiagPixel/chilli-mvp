@@ -20,13 +20,15 @@ export const actions: Actions = {
       });
     }
 
+    const tableData = {
+      name,
+      description: description || null,
+      master_id: user.id,
+    };
+
     const { data, error } = await locals.supabase
       .from("rpg_tables")
-      .insert({
-        name,
-        description,
-        master_id: user.id,
-      })
+      .insert(tableData as never)
       .select("id")
       .single();
 
@@ -37,6 +39,6 @@ export const actions: Actions = {
       });
     }
 
-    throw redirect(303, `/tables/${data.id}`);
+    throw redirect(303, `/tables/${(data as { id: string }).id}`);
   },
 };

@@ -1,6 +1,25 @@
 import { error, fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
+interface TableMember {
+  id: string;
+  user_id: string;
+  role: "master" | "player";
+  display_name: string | null;
+  joined_at: string;
+}
+
+interface RpgTable {
+  id: string;
+  name: string;
+  description: string | null;
+  master_id: string;
+  invite_code: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export const load: PageServerLoad = async ({ params, locals }) => {
   const { user } = await locals.safeGetSession();
 
@@ -59,9 +78,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   return {
-    table,
-    membership,
-    members: members ?? [],
+    table: table as RpgTable,
+    membership: membership as TableMember,
+    members: (members ?? []) as TableMember[],
     currentUserId: user.id,
   };
 };
@@ -98,19 +117,23 @@ export const actions: Actions = {
       });
     }
 
-    if (membership.role !== "master") {
+    const membershipTyped = membership as TableMember;
+
+    if (membershipTyped.role !== "master") {
       return fail(403, {
         message: "Apenas o mestre pode editar a mesa.",
       });
     }
 
+    const updateData = {
+      name,
+      description,
+      updated_at: new Date().toISOString(),
+    };
+
     const { error: updateError } = await locals.supabase
       .from("rpg_tables")
-      .update({
-        name,
-        description,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData as never)
       .eq("id", params.id);
 
     if (updateError) {
@@ -146,7 +169,9 @@ export const actions: Actions = {
       });
     }
 
-    if (membership.role !== "master") {
+    const membershipTyped = membership as TableMember;
+
+    if (membershipTyped.role !== "master") {
       return fail(403, {
         message: "Apenas o mestre pode deletar a mesa.",
       });
