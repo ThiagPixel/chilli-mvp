@@ -2,8 +2,10 @@
   import { enhance } from "$app/forms";
   import { ChatPanel } from "$lib/components/chat";
   import { DicePanel } from "$lib/components/dice";
+  import { CharacterSheetModal, CharacterSheetCard } from "$lib/components/sheet";
   import { createBrowserClient } from "@supabase/ssr";
   import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "$env/static/public";
+  import { onMount } from "svelte";
 
   interface TableData {
     id: string;
@@ -24,6 +26,29 @@
     joined_at: string;
   }
 
+  interface SheetField {
+    id: string;
+    sheet_id: string;
+    name: string;
+    field_type: string;
+    field_order: number;
+    options: string[];
+  }
+
+  interface SheetValue {
+    field_id: string;
+    value: string | null;
+  }
+
+  interface SheetData {
+    id: string;
+    name: string;
+    user_id: string;
+    created_at: string;
+    fields: SheetField[];
+    values: SheetValue[];
+  }
+
   interface PageData {
     table: TableData;
     membership: MemberData;
@@ -40,12 +65,70 @@
 
   const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-  let activeTab = $state<"dice-chat" | "config">("dice-chat");
+  let activeTab = $state<"chat" | "dice" | "players" | "sheets" | "config">("chat");
   let copiedCode = $state(false);
   let tableName = $derived(data.table.name);
   let tableDescription = $derived(data.table.description || "");
 
+  // Sheets state
+  let sheets = $state<SheetData[]>([]);
+  let isSheetModalOpen = $state(false);
+  let isLoadingSheets = $state(false);
+
   const descriptionLimit = 500;
+
+  onMount(() => {
+    loadSheets();
+  });
+
+  async function loadSheets() {
+    isLoadingSheets = true;
+
+    // Carregar fichas do usuário
+    const { data: userSheets } = await supabase
+      .from("character_sheets")
+      .select("*")
+      .eq("table_id", data.table.id)
+      .eq("user_id", data.currentUserId);
+
+    if (userSheets) {
+      // Para cada ficha, carregar campos e valores
+      const sheetsWithData: SheetData[] = [];
+
+      for (const sheet of userSheets) {
+        const { data: fields } = await supabase
+          .from("character_sheet_fields")
+          .select("*")
+          .eq("sheet_id", sheet.id)
+          .order("field_order", { ascending: true });
+
+        const { data: values } = await supabase
+          .from("character_sheet_values")
+          .select("field_id, value")
+          .eq("sheet_id", sheet.id);
+
+        sheetsWithData.push({
+          ...sheet,
+          fields: (fields || []).map((f: Record<string, unknown>) => ({
+            ...f,
+            options: (f.options as string[]) || [],
+          })),
+          values: values || [],
+        });
+      }
+
+      sheets = sheetsWithData;
+    }
+
+    isLoadingSheets = false;
+  }
+
+  async function handleDeleteSheet(sheetId: string) {
+    if (!confirm("Tem certeza que deseja deletar esta ficha?")) return;
+
+    await supabase.from("character_sheets").delete().eq("id", sheetId);
+    sheets = sheets.filter((s) => s.id !== sheetId);
+  }
 
   function getInitials(name: string) {
     return name
@@ -255,7 +338,7 @@
 
     <!-- Tab: Dados & Chat -->
     {#if activeTab === "dice-chat"}
-      <section class="grid gap-6 lg:grid-cols-2">
+      <section class="grid gap-6 lg:grid-cols-3">
         <!-- Chat -->
         <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
           <ChatPanel
@@ -282,6 +365,64 @@
               characterName={data.membership.display_name || ""}
               {supabase}
             />
+          </div>
+        </article>
+
+        <!-- Fichas -->
+        <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
+          <div class="border-b border-white/[0.07] px-5 py-3 sm:px-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-[#e50006]"></span>
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#ff454b]">
+                  Fichas
+                </p>
+              </div>
+              <button
+                onclick={() => isSheetModalOpen = true}
+                class="btn btn-primary btn-xs gap-1"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Nova Ficha
+              </button>
+            </div>
+          </div>
+          <div class="p-4 space-y-3 max-h-96 overflow-y-auto">
+            {#if isLoadingSheets}
+              <div class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-sm text-primary"></span>
+              </div>
+            {:else if sheets.length === 0}
+              <div class="flex flex-col items-center justify-center py-8 text-center">
+                <div class="mb-3 grid h-12 w-12 place-items-center rounded-full bg-white/[0.04] text-zinc-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </div>
+                <p class="text-sm text-zinc-500">Nenhuma ficha ainda</p>
+                <button
+                  onclick={() => isSheetModalOpen = true}
+                  class="btn btn-primary btn-sm mt-2"
+                >
+                  Criar primeira ficha
+                </button>
+              </div>
+            {:else}
+              {#each sheets as sheet}
+                <CharacterSheetCard
+                  {supabase}
+                  {sheet}
+                  isOwner={true}
+                  onDelete={() => handleDeleteSheet(sheet.id)}
+                  onUpdate={loadSheets}
+                />
+              {/each}
+            {/if}
           </div>
         </article>
       </section>
@@ -494,5 +635,18 @@
         {/if}
       </section>
     {/if}
+
+    <!-- Modal de criar ficha -->
+    <CharacterSheetModal
+      {supabase}
+      tableId={data.table.id}
+      userId={data.currentUserId}
+      isOpen={isSheetModalOpen}
+      onClose={() => isSheetModalOpen = false}
+      onSave={() => {
+        isSheetModalOpen = false;
+        loadSheets();
+      }}
+    />
   </div>
 </main>

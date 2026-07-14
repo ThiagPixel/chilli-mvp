@@ -151,6 +151,87 @@ export interface Database {
 					created_at?: string;
 				};
 			};
+			character_sheets: {
+				Row: {
+					id: string;
+					table_id: string;
+					user_id: string;
+					name: string;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					table_id: string;
+					user_id: string;
+					name: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					table_id?: string;
+					user_id?: string;
+					name?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			character_sheet_fields: {
+				Row: {
+					id: string;
+					sheet_id: string;
+					name: string;
+					field_type: string;
+					field_order: number;
+					options: Json;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					sheet_id: string;
+					name: string;
+					field_type?: string;
+					field_order?: number;
+					options?: Json;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					sheet_id?: string;
+					name?: string;
+					field_type?: string;
+					field_order?: number;
+					options?: Json;
+					created_at?: string;
+				};
+			};
+			character_sheet_values: {
+				Row: {
+					id: string;
+					sheet_id: string;
+					field_id: string;
+					value: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					sheet_id: string;
+					field_id: string;
+					value?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					sheet_id?: string;
+					field_id?: string;
+					value?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
 		};
 		Views: {};
 		Functions: {};
