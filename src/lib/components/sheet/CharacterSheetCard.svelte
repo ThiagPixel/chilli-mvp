@@ -28,23 +28,27 @@
 
 	let { supabase, sheet, isOwner, onDelete, onUpdate }: Props = $props();
 
-	let fields = $state(sheet.fields);
-	let values = $state<Record<string, string>>(
+	let fields = $derived(sheet.fields);
+	let valuesMap = $derived(
 		sheet.values.reduce((acc, v) => {
 			acc[v.field_id] = v.value || "";
 			return acc;
 		}, {} as Record<string, string>)
 	);
+	let editedValues = $state<Record<string, string>>({});
 	let isEditing = $state(false);
 	let isSaving = $state(false);
+
+	$effect(() => {
+		editedValues = { ...valuesMap };
+	});
 
 	async function saveValues() {
 		isSaving = true;
 
 		try {
-			// Upsert values
 			for (const field of fields) {
-				const value = values[field.id] || "";
+				const value = editedValues[field.id] || "";
 
 				const { error } = await supabase
 					.from("character_sheet_values")
@@ -70,7 +74,7 @@
 	}
 
 	function handleInputChange(fieldId: string, value: string) {
-		values[fieldId] = value;
+		editedValues[fieldId] = value;
 	}
 
 	function formatDate(date: string) {
@@ -94,6 +98,7 @@
 				<button
 					onclick={() => isEditing = true}
 					class="btn btn-ghost btn-xs text-zinc-400 hover:text-white"
+					aria-label="Editar ficha"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -103,6 +108,7 @@
 				<button
 					onclick={onDelete}
 					class="btn btn-ghost btn-xs text-zinc-400 hover:text-red-400"
+					aria-label="Excluir ficha"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -114,29 +120,32 @@
 
 	<!-- Fields -->
 	<div class="p-4 space-y-3">
-		{#each fields.sort((a, b) => a.field_order - b.field_order) as field}
+		{#each [...fields].sort((a, b) => a.field_order - b.field_order) as field}
 			<div class="space-y-1">
-				<label class="text-xs font-medium text-zinc-400">{field.name}</label>
+				<label for="field-{field.id}" class="text-xs font-medium text-zinc-400">{field.name}</label>
 
 				{#if field.field_type === "text"}
 					<input
+						id="field-{field.id}"
 						type="text"
-						value={values[field.id] || ""}
+						value={isEditing ? editedValues[field.id] : valuesMap[field.id]}
 						oninput={(e) => handleInputChange(field.id, e.currentTarget.value)}
 						disabled={!isOwner}
 						class="input input-bordered input-sm w-full bg-zinc-800 text-zinc-200 disabled:opacity-60"
 					/>
 				{:else if field.field_type === "number"}
 					<input
+						id="field-{field.id}"
 						type="number"
-						value={values[field.id] || ""}
+						value={isEditing ? editedValues[field.id] : valuesMap[field.id]}
 						oninput={(e) => handleInputChange(field.id, e.currentTarget.value)}
 						disabled={!isOwner}
 						class="input input-bordered input-sm w-full bg-zinc-800 text-zinc-200 disabled:opacity-60"
 					/>
 				{:else if field.field_type === "textarea"}
 					<textarea
-						value={values[field.id] || ""}
+						id="field-{field.id}"
+						value={isEditing ? editedValues[field.id] : valuesMap[field.id]}
 						oninput={(e) => handleInputChange(field.id, e.currentTarget.value)}
 						disabled={!isOwner}
 						rows="3"
@@ -144,7 +153,8 @@
 					></textarea>
 				{:else if field.field_type === "select"}
 					<select
-						value={values[field.id] || ""}
+						id="field-{field.id}"
+						value={isEditing ? editedValues[field.id] : valuesMap[field.id]}
 						onchange={(e) => handleInputChange(field.id, e.currentTarget.value)}
 						disabled={!isOwner}
 						class="select select-bordered select-sm w-full bg-zinc-800 text-zinc-200 disabled:opacity-60"

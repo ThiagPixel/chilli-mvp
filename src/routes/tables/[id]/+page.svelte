@@ -65,7 +65,7 @@
 
   const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-  let activeTab = $state<"chat" | "dice" | "players" | "sheets" | "config">("chat");
+  	let activeTab = $state<"chat" | "dice" | "sheets" | "turns" | "config">("chat");
   let copiedCode = $state(false);
   let tableName = $derived(data.table.name);
   let tableDescription = $derived(data.table.description || "");
@@ -308,127 +308,179 @@
   </div>
 </header>
 
-    <!-- Tabs -->
-    <div class="tabs tabs-boxed mb-6 bg-zinc-800/50 p-1">
-      <button
-        class="tab flex-1 gap-2 {activeTab === 'dice-chat' ? 'tab-active' : ''}"
-        onclick={() => activeTab = "dice-chat"}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="2" width="20" height="20" rx="2" />
-          <circle cx="8" cy="8" r="1" fill="currentColor" />
-          <circle cx="16" cy="8" r="1" fill="currentColor" />
-          <circle cx="8" cy="16" r="1" fill="currentColor" />
-          <circle cx="16" cy="16" r="1" fill="currentColor" />
-          <circle cx="12" cy="12" r="1" fill="currentColor" />
-        </svg>
-        Dados & Chat
-      </button>
-      <button
-        class="tab flex-1 gap-2 {activeTab === 'config' ? 'tab-active' : ''}"
-        onclick={() => activeTab = "config"}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-        Configuração
-      </button>
-    </div>
+    	<!-- Tabs -->
+        <div class="tabs tabs-boxed mb-6 bg-zinc-800/50 p-1">
+          <button
+            class="tab gap-2 {activeTab === 'chat' ? 'tab-active' : ''}"
+            onclick={() => activeTab = "chat"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Chat
+          </button>
+          <button
+            class="tab gap-2 {activeTab === 'dice' ? 'tab-active' : ''}"
+            onclick={() => activeTab = "dice"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="2" />
+              <circle cx="8" cy="8" r="1" fill="currentColor" />
+              <circle cx="16" cy="8" r="1" fill="currentColor" />
+              <circle cx="8" cy="16" r="1" fill="currentColor" />
+              <circle cx="16" cy="16" r="1" fill="currentColor" />
+              <circle cx="12" cy="12" r="1" fill="currentColor" />
+            </svg>
+            Dados
+          </button>
+          <button
+            class="tab gap-2 {activeTab === 'sheets' ? 'tab-active' : ''}"
+            onclick={() => activeTab = "sheets"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            Fichas
+          </button>
+          <button
+            class="tab gap-2 {activeTab === 'turns' ? 'tab-active' : ''}"
+            onclick={() => activeTab = "turns"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            Turnos
+          </button>
+          <button
+            class="tab gap-2 {activeTab === 'config' ? 'tab-active' : ''}"
+            onclick={() => activeTab = "config"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            Config
+          </button>
+        </div>
 
-    <!-- Tab: Dados & Chat -->
-    {#if activeTab === "dice-chat"}
-      <section class="grid gap-6 lg:grid-cols-3">
-        <!-- Chat -->
-        <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
-          <ChatPanel
-            tableId={data.table.id}
-            currentUserId={data.currentUserId}
-            {supabase}
-          />
-        </article>
-
-        <!-- Dados -->
-        <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
-          <div class="border-b border-white/[0.07] px-5 py-3 sm:px-6">
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-[#e50006]"></span>
-              <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#ff454b]">
-                Dados
-              </p>
-            </div>
-          </div>
-          <div class="p-4 sm:p-6">
-            <DicePanel
+    	<!-- Tab: Chat -->
+        {#if activeTab === "chat"}
+          <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
+            <ChatPanel
               tableId={data.table.id}
               currentUserId={data.currentUserId}
-              characterName={data.membership.display_name || ""}
               {supabase}
             />
-          </div>
-        </article>
+          </article>
+        {/if}
 
-        <!-- Fichas -->
-        <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
-          <div class="border-b border-white/[0.07] px-5 py-3 sm:px-6">
-            <div class="flex items-center justify-between">
+        <!-- Tab: Dados -->
+        {#if activeTab === "dice"}
+          <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
+            <div class="border-b border-white/[0.07] px-5 py-3 sm:px-6">
               <div class="flex items-center gap-2">
                 <span class="h-2 w-2 rounded-full bg-[#e50006]"></span>
                 <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#ff454b]">
-                  Fichas
+                  Dados
                 </p>
               </div>
-              <button
-                onclick={() => isSheetModalOpen = true}
-                class="btn btn-primary btn-xs gap-1"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                Nova Ficha
-              </button>
             </div>
-          </div>
-          <div class="p-4 space-y-3 max-h-96 overflow-y-auto">
-            {#if isLoadingSheets}
-              <div class="flex justify-center py-8">
-                <span class="loading loading-spinner loading-sm text-primary"></span>
-              </div>
-            {:else if sheets.length === 0}
-              <div class="flex flex-col items-center justify-center py-8 text-center">
-                <div class="mb-3 grid h-12 w-12 place-items-center rounded-full bg-white/[0.04] text-zinc-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                  </svg>
+            <div class="p-4 sm:p-6">
+              <DicePanel
+                tableId={data.table.id}
+                currentUserId={data.currentUserId}
+                characterName={data.membership.display_name || ""}
+                {supabase}
+              />
+            </div>
+          </article>
+        {/if}
+
+        <!-- Tab: Fichas -->
+        {#if activeTab === "sheets"}
+          <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
+            <div class="border-b border-white/[0.07] px-5 py-3 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="h-2 w-2 rounded-full bg-[#e50006]"></span>
+                  <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#ff454b]">
+                    Fichas
+                  </p>
                 </div>
-                <p class="text-sm text-zinc-500">Nenhuma ficha ainda</p>
                 <button
                   onclick={() => isSheetModalOpen = true}
-                  class="btn btn-primary btn-sm mt-2"
+                  class="btn btn-primary btn-xs gap-1"
                 >
-                  Criar primeira ficha
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Nova Ficha
                 </button>
               </div>
-            {:else}
-              {#each sheets as sheet}
-                <CharacterSheetCard
-                  {supabase}
-                  {sheet}
-                  isOwner={true}
-                  onDelete={() => handleDeleteSheet(sheet.id)}
-                  onUpdate={loadSheets}
-                />
-              {/each}
-            {/if}
-          </div>
-        </article>
-      </section>
-    {/if}
+            </div>
+            <div class="p-4 space-y-3 max-h-[600px] overflow-y-auto">
+              {#if isLoadingSheets}
+                <div class="flex justify-center py-8">
+                  <span class="loading loading-spinner loading-sm text-primary"></span>
+                </div>
+              {:else if sheets.length === 0}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                  <div class="mb-4 grid h-16 w-16 place-items-center rounded-full bg-white/[0.04] text-zinc-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  </div>
+                  <p class="text-zinc-500">Nenhuma ficha ainda</p>
+                  <button
+                    onclick={() => isSheetModalOpen = true}
+                    class="btn btn-primary btn-sm mt-3"
+                  >
+                    Criar primeira ficha
+                  </button>
+                </div>
+              {:else}
+                <div class="grid gap-4 lg:grid-cols-2">
+                  {#each sheets as sheet}
+                    <CharacterSheetCard
+                      {supabase}
+                      {sheet}
+                      isOwner={true}
+                      onDelete={() => handleDeleteSheet(sheet.id)}
+                      onUpdate={loadSheets}
+                    />
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          </article>
+        {/if}
 
-    <!-- Tab: Configuração -->
+        <!-- Tab: Turnos (Em breve) -->
+        {#if activeTab === "turns"}
+          <article class="overflow-hidden rounded-2xl border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
+            <div class="flex flex-col items-center justify-center py-20 text-center">
+              <div class="mb-4 grid h-16 w-16 place-items-center rounded-full bg-white/[0.04] text-zinc-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-zinc-200">Ordem de Turno</h3>
+              <p class="mt-2 max-w-sm text-sm text-zinc-500">
+                Em breve! Organize a ordem de turnos da sua mesa de RPG.
+              </p>
+            </div>
+          </article>
+        {/if}
+
+        <!-- Tab: Configuração -->
     {#if activeTab === "config"}
       <section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.8fr)]">
         <!-- Grupo -->

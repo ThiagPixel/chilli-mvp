@@ -121,11 +121,15 @@
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
 		onclick={handleBackdropClick}
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="modal-title"
+		tabindex="-1"
 	>
 		<div class="w-full max-w-lg rounded-2xl border border-white/10 bg-[#141414] shadow-xl">
 			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-white/10 p-5">
-				<h2 class="text-xl font-bold text-white">Nova Ficha</h2>
+				<h2 id="modal-title" class="text-xl font-bold text-white">Nova Ficha</h2>
 				<button
 					onclick={handleClose}
 					class="btn btn-circle btn-ghost btn-sm text-zinc-400 hover:text-white"
@@ -147,10 +151,11 @@
 
 				<!-- Nome da Ficha -->
 				<div class="form-control">
-					<label class="label">
+					<label for="sheet-name" class="label">
 						<span class="label-text text-zinc-300">Nome da Ficha</span>
 					</label>
 					<input
+						id="sheet-name"
 						type="text"
 						bind:value={sheetName}
 						placeholder="Ex: Ficha de Personagem"
@@ -161,9 +166,7 @@
 				<!-- Campos -->
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
-						<label class="label">
-							<span class="label-text text-zinc-300">Campos</span>
-						</label>
+						<span class="label-text text-zinc-300">Campos</span>
 						<button type="button" onclick={addField} class="btn btn-primary btn-xs gap-1">
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 								<path d="M12 5v14M5 12h14" />
@@ -206,10 +209,11 @@
 							</div>
 							{#if fields.length > 1}
 								<button
-									type="button"
-									onclick={() => removeField(index)}
-									class="btn btn-circle btn-ghost btn-sm text-zinc-500 hover:text-red-400"
-								>
+										type="button"
+										onclick={() => removeField(index)}
+										class="btn btn-circle btn-ghost btn-sm text-zinc-500 hover:text-red-400"
+										aria-label="Remover campo"
+									>
 									<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 										<path d="M18 6L6 18M6 6l12 12" />
 									</svg>
